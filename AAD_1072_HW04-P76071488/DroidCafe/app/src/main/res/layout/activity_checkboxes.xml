@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CheckboxesActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <CheckBox
+            android:id="@+id/chocolate_syrup"
+            android:layout_width="215dp"
+            android:layout_height="58dp"
+            android:text="Chocolate syrup"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="141dp" />
+
+        <CheckBox
+            android:id="@+id/sprinkles"
+            android:layout_width="215dp"
+            android:layout_height="58dp"
+            android:text="Sprinkles"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="199dp" />
+
+        <CheckBox
+            android:id="@+id/crushed_nuts"
+            android:layout_width="215dp"
+            android:layout_height="58dp"
+            android:text="Crushed nuts"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="257dp" />
+
+        <CheckBox
+            android:id="@+id/cherries"
+            android:layout_width="215dp"
+            android:layout_height="58dp"
+            android:text="Cherries"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="315dp" />
+
+        <CheckBox
+            android:id="@+id/orio_cookie_crumbles"
+            android:layout_width="215dp"
+            android:layout_height="58dp"
+            android:text="Orio cookie crumbles"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="373dp" />
+
+        <Button
+            android:id="@+id/show_toast"
+            android:layout_width="147dp"
+            android:layout_height="wrap_content"
+            android:text="show toast"
+            tools:layout_editor_absoluteX="54dp"
+            tools:layout_editor_absoluteY="431dp" />
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

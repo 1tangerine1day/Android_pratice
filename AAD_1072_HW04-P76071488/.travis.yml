@@ -1,0 +1,46 @@
+language: android
+dist: trusty
+env:
+  global:
+  - ANDROID_API=26
+  - ANDROID_BUILD_TOOLS=26.0.2
+  - PROJECT_1=DroidCafe
+  - PROJECT_2=RecyclerView
+  - secure: ZuL2xHOwzCqUBpzJ97fRPsgQ7y/ihsgm8bJhzF8HdQW1uxWU77VhA1nME5m4yHOYQtQPB5lgJVXAvKOWwsq5kMRG1sLLP5uP/uIUsgG2nVtb3OtlaxltehPODF+njKNq+iUCAh1BP5kbeSbIlxBDKB1cu7f9MJ6c2itPkxp8yBZXM9Lgb1lA4BVROTPuJgQgF8actM4mjF5ud/hL7x0WMrxqcGooqyJgVar3gledN2s5uYMafEG8SJ7g7TaHQcmdEDApVADVADfRKs73NHnrzcWtAHfHKWei1rN4FXrQb5fAOpCRWp09Zr6H57TNhJQyDstHf2+ME6aukQwpwK1e5l2SglOeZs+r2jKiF9BsgQuErU+olzAd/iCqsbe78s7Wq15hqhIG5Fm8P3+Aesy2vnk4VfCRATsnTSRpOnMY3Ht3EYHS408oaOzyQ2p61IkUCmK43dgXLIOn11oE1qOK2dHFjB7IWAu100dXEaqZ6uxyRYZPm0h3o1wRcf9zOTuvttzPdoefxvbOUpAg7+ro5RoEVDWMxMgHcHln52XDaHIHIgRaxaxB90dQty6f4jXkrNmRQMF+gguS1pTL6SxnJE7xN5JTc7YEnrzao2/9BEjfWEv0jUESMEUl2UBbdzpPaVnNV1ahJi+Na9vCltMunr5K8pbsvVAb22bQn1h+S0s=
+  - secure: L2CFTcUC8lOBwNINfJKgLhjJ/Lt9tqWwtj11kGgi0xWZaOFCZDzQ6bjfYCH5c4nQwqhQPP/6ThS4eZntzCjAzr/FqYbv8JTwGTiB5sWORGJ1ItwgGVUIEnkfeSG1s8oNWCd9Q1eoLr/HZ7OvOePJylbY8917w8qXKT5I+pN/N/Eao7G1Cdj8nsXPslqKdVllqls+byA3QUwPFwQSbfMMvYXLjVnRuwyuQK0VYTqdj54BvYeoAjfMfm26P9y2LzqpfqfbDQKChcGTqa0UyzD2bybLpv16CLJ2wYd4tZT0+h7Tjo7f92idYzhXmpJZDQ5m0XezzLvnmjAHh9Wqd0ehM5A2rIHTuK0KGJ8GdvOyN0D+q7NY5JDGfdhF0tM78r04yn9JWpZ+NGHxvxItxEx68MoREzD5mSvWYlvI9xoOvgY6LD4GjMSpNJGbRL2SmcrBkVYvUdhbN9Lt6KIYFVqo5Iyb4ulFqVMMSuHsxYm0L7XHS52krV330A3zUtq8G8x5J2C1D/vRnlsH+fy/L0okOfQ1Y2WnsBbhqH9evagZpkPG8NTguOmLIZtcfJwphfkXWExEMC6u4AHNvV+R2qVREaJJnZgmIGNl8rFCemmOBfVLe6/+34/opflgiV1FxpOH6uF/KdLkOZZtjOLBxAAaJAyw78Ct3QUQPmaITKSBA4c=
+branches:
+  only:
+  - master
+android:
+  components:
+  - build-tools-$ANDROID_BUILD_TOOLS
+  - android-$ANDROID_API
+  - extra-android-m2repository
+before_install:
+- export PROJECT_ROOT="${PWD}"
+- chmod +x ${PROJECT_1}/gradlew
+- chmod +x ${PROJECT_2}/gradlew
+- chmod +x result_parser.py
+before_script:
+- adb kill-server
+- adb connect ${EMULATOR_SERVER}
+- adb devices
+script:
+- cd ${PROJECT_ROOT}
+- cd ${PROJECT_1} && ./gradlew connectedDebugAndroidTest --stacktrace
+- cd ${PROJECT_ROOT}
+- cd ${PROJECT_2} && ./gradlew connectedDebugAndroidTest --stacktrace
+after_script:
+- cd ${PROJECT_ROOT}
+- "./result_parser.py ${PROJECT_ROOT}/${PROJECT_1}/app/build/reports/androidTests/connected/com.example.android.droidcafe.MainActivityTest.html
+  >> results.txt"
+- "./result_parser.py ${PROJECT_ROOT}/${PROJECT_1}/app/build/reports/androidTests/connected/com.example.android.droidcafe.CheckboxesActivityTest.html
+  >> results.txt"
+- "./result_parser.py ${PROJECT_ROOT}/${PROJECT_1}/app/build/reports/androidTests/connected/com.example.android.droidcafe.OrderActivityTest.html
+  >> results.txt"
+- "./result_parser.py ${PROJECT_ROOT}/${PROJECT_2}/app/build/reports/androidTests/connected/com.example.android.recyclerview.RecyclerViewTest.html
+  >> results.txt"
+- echo $(basename ${TRAVIS_REPO_SLUG}) ${TRAVIS_BRANCH} ${TRAVIS_COMMIT} $(git show
+  -s --format=%ci ${TRAVIS_COMMIT} | cut -c 1-20) $(cat results.txt) > results.txt
+- awk  '//{for(i=6;i<NF;i=i+2) print $i"\t"$(i+1)}' results.txt
+- curl -d "@results.txt" -X POST ${DB_SERVER_URL}

@@ -1,0 +1,55 @@
+language: android
+dist: trusty
+env:
+  global:
+  - ANDROID_API=26
+  - ANDROID_BUILD_TOOLS=26.0.2
+  - PROJECT_1=SimpleAsyncTask
+  - PROJECT_2=GetWebSourceCode
+  - PROJECT_3=PowerReceiver
+  - secure: OCS6dm0+DcqcCeb/B7WdgOYHbvB7wj7Bpf3krZ2Wb7uoGBppDjUKFxpOSiuBjoENPqRuI7IJRco2h8hi8O8TViIXNoPOnrXTWARYN+whgahPfxkwHE+csFHOj9T268zdCVKHbKUWzOdKx0CjNP1ZO+ErebVF69ZUTEp3bMr67zS9Mdb0bNESNhWRuY8w477JAx9LSZGsUkQWu2mjoWyo25OkWdYmHJIKAytGyhHnK+qoYJTFVFlvkAVOSzTA4qez4NMoCbIXi1n5cXCE+/JrNKWnCd18EhHhxA8rkPmQsJnZ9jkfAR2NurE9D3quB1WOn+Mf1DWyBo5czG9HioGLteIeJEwGTtlGOZP1P/mpWPMoX1N0T09EYo5bQpDrGDs5HzjCchO4Cyvxr5bLIYoAu199SGr3qDKhycF15Mr9NY2QYYop4/PkNpem/fj4jgDuWzP+LJhOnuMu8gOGiqkkaQnzrZC7rW0M8Bul9wZdp6+hLXMuW8J3RL9MkQcIqd2NqfTw/qhKOuNS6lO28YzfXy5zd+RRqe4ghZaKRvL1ggB71P0XsW3rq4q2urtcC9II2FGRDFTWG5zEw0wv8iAmmNEGolanQOZBk7u9aNDxiddHTh3yHOaOBusPrOst5nhwCjb0LBqDbDwvS9vLWEETocCAZxfsvetKA67/H8blhyM=
+  - secure: PJapSKAk+tkDV1BOqfiXwuNtwfM3A9gl5N4yzEKO4PZieYQMyT+L8UFFA177MxDichU40N+Eu1heBgKODg4mMURGTyiTtF6JOW2QAvwP987cCf1eULlx1uiApcdUDwBuG56UAmXE483rC41NSE8+t3qZHRJKaCk78aa/HAwwXpyIjbX9YSHn7lFx8kMi8A+nV0tkxjYDKWV0bJmBGNvquOF4YM35jRHkcYTAWI5yA9q1Kttoehu7R8gJ8neCz7OR8p60+QfPZCjieJ8rzILUNjrb6LIJcyf8nubT1G6cUc63Scaq3+RRvPN2imFcSna131NFSgrZDr9tv4NUkZ68Cxi3BYGGnSQG0URCp5XxH/j2ObbcT9iLGQr62hNmeo2f7SK1/ZFIoEofbO8NUrsQV+4H+NILAFYnfIwzrvU9LhcKAKF0zMD7qtvB+tr2p+jnan9VjLOqNU75ruH3IH17d2b/cEKtR0aRy7W+XVRmPr3fV9CXARzxZNSwdwJYWJpRzGD2/Z9An4HMeqYhMeu/uQOJgOa4W5+cy8ycjybAcViUjk88Qe8/t+cQvcOQkb8U0aTA81uOVR/4idI6FINKndLJ1VFICstK58YWLBiHwLEKpnB6XpVcWaSRmkQ6YHrhMfeJTJuvrzj0VHFnam0mZb9eFwcSSHEAA7n8qohKfts=
+branches:
+  only:
+  - master
+android:
+  components:
+  - build-tools-$ANDROID_BUILD_TOOLS
+  - android-$ANDROID_API
+  - extra-android-m2repository
+before_install:
+- export PROJECT_ROOT="${PWD}"
+- chmod +x ${PROJECT_1}/gradlew
+- chmod +x ${PROJECT_2}/gradlew
+- chmod +x ${PROJECT_3}/gradlew
+- chmod +x result_parser.py
+before_script:
+- adb kill-server
+- adb connect ${EMULATOR_SERVER}
+- adb devices
+script:
+- cd ${PROJECT_ROOT}
+- cd ${PROJECT_1} && ./gradlew connectedDebugAndroidTest --stacktrace
+- cd ${PROJECT_ROOT} && ./result_parser.py ${PROJECT_ROOT}/${PROJECT_1}/app/build/reports/androidTests/connected/com.example.android.simpleasynctask.ProgressBarTest.html
+  >> results.txt
+- cd ${PROJECT_2} && ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.android.getwebsourcecode.GetWebSourceCodeTest
+  --stacktrace
+- cd ${PROJECT_ROOT} && ./result_parser.py ${PROJECT_ROOT}/${PROJECT_2}/app/build/reports/androidTests/connected/com.example.android.getwebsourcecode.GetWebSourceCodeTest.html
+  >> results.txt
+- adb shell settings put global airplane_mode_on 1
+- adb shell am broadcast -a android.intent.action.AIRPLANE_MODE
+- cd ${PROJECT_2} && ./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.android.getwebsourcecode.NoInternetTest
+  --stacktrace
+- adb shell settings put global airplane_mode_on 0
+- adb shell am broadcast -a android.intent.action.AIRPLANE_MODE
+- cd ${PROJECT_ROOT} && ./result_parser.py ${PROJECT_ROOT}/${PROJECT_2}/app/build/reports/androidTests/connected/com.example.android.getwebsourcecode.NoInternetTest.html
+  >> results.txt
+- cd ${PROJECT_3} && ./gradlew connectedDebugAndroidTest --stacktrace
+- cd ${PROJECT_ROOT} && ./result_parser.py ${PROJECT_ROOT}/${PROJECT_3}/app/build/reports/androidTests/connected/com.android.fundamentals.powerreceiver.CustomBroadcastTest.html
+  >> results.txt
+after_script:
+- cd ${PROJECT_ROOT}
+- echo $(basename ${TRAVIS_REPO_SLUG}) ${TRAVIS_BRANCH} ${TRAVIS_COMMIT} $(git show
+  -s --format=%ci ${TRAVIS_COMMIT} | cut -c 1-20) $(cat results.txt) > results.txt
+- awk  '//{for(i=6;i<NF;i=i+2) print $i"\t"$(i+1)}' results.txt
+- curl -d "@results.txt" -X POST ${DB_SERVER_URL}
